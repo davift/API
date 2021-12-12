@@ -1,0 +1,11 @@
+[Unit]
+Description=Python API on port 80
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /App/api.py
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target

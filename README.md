@@ -68,3 +68,8 @@ sudo systemctl restart simpleapi.service
 sudo systemctl stop simpleapi.service
 ```
 
+Python acript can eventually be compiled:
+
+```
+python -m py_compile api.py
+```

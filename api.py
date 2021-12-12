@@ -43,7 +43,7 @@ def http_server(host_port,content_type="application/json"):
 					output.vpn_status = 'OFF'
 				else:
 					output.vpn_status = 'ON'
-#				output.vpn_data = subprocess.getoutput(app + '/vpn.sh status | grep "Data Usage" | cut -c13-') ## Makes the script refresh slower
+				output.vpn_data = subprocess.getoutput(app + '/vpn.sh status | grep "Data Usage" | cut -c13-') ## Makes the script refresh slower
 				output.drive_used = subprocess.getoutput('df -h | head -n 2 | tail -n 1 | awk \'{print $5}\'')
 				output.drive_free = subprocess.getoutput('df -h | head -n 2 | tail -n 1 | awk \'{print $4}\'')
 				output.uptime = subprocess.getoutput('uptime -p | cut -c4-')
