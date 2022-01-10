@@ -58,6 +58,19 @@ tr:nth-child(odd) {
   margin: auto;
   width: 800px;
 }
+
+a:link {
+  color: black;
+}
+a:visited {
+  color: black;
+}
+a:hover {
+  color: red;
+}
+a:active {
+  color: blue;
+}
 </style>
 <body>
 
@@ -113,9 +126,11 @@ function Metrics(){
 function Files(){
   const files = JSON.parse(Get('/files'));
   var table = document.getElementById("files");
-  document.getElementById("files").innerHTML = `<td>Name</td><td>Size</td><td width="43"></td><td width="40"></td>`;
+  var download_url = 'http://192.168.1.105:8080/';
+
+  document.getElementById("files").innerHTML = `<td>Name</td><td width="100">Size</td>`;
   for (const [key, value] of Object.entries(files)) {
-    document.getElementById("files").insertRow().innerHTML = `<td>${key}</td><td>${value}</td><td>[<a href="${key}">get</a>]</td><td>[<a onclick="Get('/del?${key}');Files();" href="#">del</a>]</td>`;
+    document.getElementById("files").insertRow().innerHTML = `<td><a target="_blank" href="${download_url}${key}">${key}</a></td><td>${value}</td>`;
   }
 }
 

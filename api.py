@@ -43,7 +43,7 @@ def http_server(host_port,content_type="application/json"):
 					output.vpn_status = 'OFF'
 				else:
 					output.vpn_status = 'ON'
-				output.vpn_data = subprocess.getoutput(app + '/vpn.sh status | grep "Data Usage" | cut -c13-') ## Makes the script refresh slower
+#				output.vpn_data = subprocess.getoutput(app + '/vpn.sh status | grep "Data Usage" | cut -c13-') ## Makes the script refresh slower
 				output.drive_used = subprocess.getoutput('df -h | head -n 2 | tail -n 1 | awk \'{print $5}\'')
 				output.drive_free = subprocess.getoutput('df -h | head -n 2 | tail -n 1 | awk \'{print $4}\'')
 				output.uptime = subprocess.getoutput('uptime -p | cut -c4-')
@@ -83,11 +83,11 @@ def http_server(host_port,content_type="application/json"):
 				send_301()
 				return
 
-			elif self.path.find('/del?') == 0:
-				delete = path + self.path.replace('del?', '', 1).replace(' ', '\ ')
-				subprocess.getoutput('rm -f ' + delete)
-				send_200()
-				return
+#			elif self.path.find('/del?') == 0:
+#				delete = path + self.path.replace('del?', '', 1).replace(' ', '\ ')
+#				subprocess.getoutput('rm -f ' + delete)
+#				send_200()
+#				return
 
 			elif self.path == '/' or self.path == '/icon-32x32.jpg':
 				if self.path == '/':
@@ -119,30 +119,24 @@ def http_server(host_port,content_type="application/json"):
 				return
 
 			else:
-				if os.path.isfile(path + self.path):
-					self.send_response(200)
-					self.send_header("Content-type", "")
-					self.send_header("Content-Disposition", "attachment; filename=" + os.path.basename(path + self.path))
-					self.send_header("Content-Transfer-Encoding", "binary")
-					self.send_header("Content-Length", os.stat(path + self.path).st_size)
-					self.end_headers()
+#				if os.path.isfile(path + self.path):
+#					self.send_response(200)
+#					self.send_header("Content-type", "")
+#					self.send_header("Content-Disposition", "attachment; filename=" + os.path.basename(path + self.path))
+#					self.send_header("Content-Transfer-Encoding", "binary")
+#					self.send_header("Content-Length", os.stat(path + self.path).st_size)
+#					self.end_headers()
+#
+#					file = open(path + self.path, "rb")
+#					try:
+#						self.wfile.write(bytes(file.read()))
+#						file.close()
+#					except:
+#						file.close()
+#					return
 
-					file = open(path + self.path, "rb")
-					try:
-						self.wfile.write(bytes(file.read()))
-						file.close()
-					except:
-						file.close()
-						return
-
-				else:
-					self.send_response(404)
-					self.end_headers()
-
-					# Debugging
-					#send_200()
-					#self.wfile.write(bytes(self.path, 'utf-8'))
-
+				self.send_response(404)
+				self.end_headers()
 				return
 
 		def log_message(self, format, *args):
