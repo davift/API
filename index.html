@@ -98,7 +98,7 @@ a:active {
 <!--- Left table --->
 <center><b>Metrics</b></center>
 <table id="metrics">
-  <tr><td><td></tr>
+  <tr><td>Loading...<td></tr>
 </table>
 </div>
 
@@ -106,7 +106,7 @@ a:active {
 <!--- Right table --->
 <center><b>Files</b></center>
 <table id="files">
-  <tr><td><td></tr>
+  <tr><td>Loading...<td></tr>
 </table>
 </div>
 
@@ -114,13 +114,8 @@ a:active {
 </body>
 <script>
 async function Metrics(){
-  document.getElementById("metrics").innerHTML = `<td>Loading...</td>`;
-
-  const xhr = new XMLHttpRequest();
-  xhr.open("GET","/status",false);
-  xhr.send();
-
-  const metrics = JSON.parse(xhr.responseText);
+  const request = await fetch("/status");
+  const metrics = await request.json();
   var table = document.getElementById("metrics");
 
   document.getElementById("metrics").innerHTML = `<td><b>Key</b></td><td><b>Value</b></td>`;
@@ -130,13 +125,8 @@ async function Metrics(){
 }
 
 async function Files(){
-  document.getElementById("files").innerHTML = `<td>Loading...</td>`;
-
-  const xhr = new XMLHttpRequest();
-  xhr.open("GET","/files",false);
-  xhr.send();
-
-  const files = JSON.parse(xhr.responseText);
+  const request = await fetch("/files");
+  const files = await request.json();
   var table = document.getElementById("files");
   var download_url = "http://" + window.location.hostname + ":8080";
 
@@ -147,51 +137,39 @@ async function Files(){
 }
 
 async function Start(){
-  const xhr = new XMLHttpRequest();
-  xhr.open("GET","/start",false);
-  xhr.send();
-
-  if (xhr.responseText) {
+  const request = await fetch("/start");
+  if (await request) {
     Metrics();
   }
 }  
  
 async function Stop(){
-  const xhr = new XMLHttpRequest();
-  xhr.open("GET","/stop",false);
-  xhr.send();
-
-  if (xhr.responseText) {
+  const request = await fetch("/stop");
+  if (await request) {
     Metrics();
   }
 }
 
 async function Connect(){
-  const xhr = new XMLHttpRequest();
-  xhr.open("GET","/connect",false);
-  xhr.send();
-
-  if (xhr.responseText) {
+  const request = await fetch("/connect");
+  if (await request) {
     Metrics();
   }
 }
 
 async function Disconnect(){
-  const xhr = new XMLHttpRequest();
-  xhr.open("GET","/disconnect",false);
-  xhr.send();
-
-  if (xhr.responseText) {
+  const request = await fetch("/disconnect");
+  if (await request) {
     Metrics();
   }
 }
 
 window.onload = function () { 
-  Metrics();
   Files();
+  Metrics();
 }
 
-setInterval(Files, 10000);
-setInterval(Metrics, 300000);
+setInterval(Files, 2000);
+setInterval(Metrics, 60000);
 </script>
 </html>

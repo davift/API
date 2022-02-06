@@ -63,13 +63,13 @@ def http_server(host_port,content_type="application/json"):
       elif self.path == '/halt':
         send_200('text/plain')
         self.wfile.write(bytes('Halted', 'utf-8'))
-        subprocess.getoutput('shutdown now')
+        subprocess.getoutput('sudo shutdown now')
         return
 
       elif self.path == '/reboot':
         send_200('text/plain')
         self.wfile.write(bytes('Rebooting', 'utf-8'))
-        subprocess.getoutput('reboot')
+        subprocess.getoutput('sudo reboot')
         return
 
       elif self.path == '/connect':
