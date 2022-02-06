@@ -38,12 +38,25 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/Torrent
+WorkingDirectory=/App
 ExecStart=/usr/bin/python3 /App/api.py
 Restart=on-abort
 
 [Install]
 WantedBy=multi-user.target
+```
+
+The service configuration above executes the Python version of the application. \
+To execute the NodeJS version install runtime by issuing:
+
+```
+sudo apt install nodejs -y
+```
+
+And replace the following file on the service configuration file:
+
+```
+ExecStart=/usr/bin/node /App/api.js
 ```
 
 It assumes the /Torrent directory is where the Transmission is configured to place the downloaded files but these both locations can be changed in `/App/api.py`:
