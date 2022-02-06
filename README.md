@@ -12,6 +12,8 @@ The second purpose is to create a WebUI to manage a RaspberryPi dedicated to dow
 - Reboot and halt the system,
 - List, download, and delete files from the torrent directory.
 
+![listener_screenshot](https://github.com/davift/API/blob/main/screenshot.png)
+
 ## Installation
 
 It is recommended to clone this repo then rename the directory to `/App`:
