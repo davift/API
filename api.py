@@ -47,7 +47,7 @@ def http_server(host_port,content_type="application/json"):
         else:
           output.transmission = '<span style="color:green;">Running</span>'
         runCmd2 = subprocess.getoutput('curl -s http://ip.me')
-        runCmd3 = subprocess.getoutput('dig dftsue.duckdns.org +short') ## Dynamic DNS or static IP
+        runCmd3 = subprocess.getoutput('dig example.duckdns.org +short') ## Dynamic DNS or static IP
         if runCmd2 == runCmd3:
           output.vpn_status = '<span style="color:red;">Disconnected</span>'
         else:
