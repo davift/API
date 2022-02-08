@@ -1,7 +1,7 @@
 # API
 
-Version 1 \
-2021-12-12
+Version 2 \
+2022-02-07
 
 ## Introduction / Purpose
 
@@ -47,16 +47,30 @@ WantedBy=multi-user.target
 ```
 
 The service configuration above executes the Python version of the application. \
-To execute the NodeJS version install runtime by issuing:
+To execute the **NodeJS** version install runtime by issuing:
 
 ```
 sudo apt install nodejs -y
+node -v
 ```
 
 And replace the following file on the service configuration file:
 
 ```
 ExecStart=/usr/bin/node /App/api.js
+```
+
+Same for **GOlang**, install the compiler:
+
+```
+sudo apt install golang
+go --version
+```
+
+And replace the following file on the service configuration file:
+
+```
+ExecStart=/usr/bin/go run /App/api.go
 ```
 
 It assumes the /Torrent directory is where the Transmission is configured to place the downloaded files but these both locations can be changed in `/App/api.py`:
