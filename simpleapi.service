@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/App
-ExecStart=/usr/bin/node /App/api.js
+ExecStart=/usr/bin/python3 /App/api.py
 Restart=on-abort
 
 [Install]

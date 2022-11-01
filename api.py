@@ -46,13 +46,9 @@ def http_server(host_port,content_type="application/json"):
           output.transmission = '<span style="color:red;">Not Running</span>'
         else:
           output.transmission = '<span style="color:green;">Running</span>'
-        runCmd2 = subprocess.getoutput('curl -s http://ip.me')
-        runCmd3 = subprocess.getoutput('dig example.duckdns.org +short') ## Dynamic DNS or static IP
-        if runCmd2 == runCmd3:
-          output.vpn_status = '<span style="color:red;">Disconnected</span>'
-        else:
-          output.vpn_status = '<span style="color:green;">Connected</span>'
-        output.vpn_data = subprocess.getoutput('windscribe account | grep "Data Usage" | cut -c13-') ## Very slow!
+
+        output.vpn_status = subprocess.getoutput('[ $(curl -s http://ip.me) != $(dig dftsue.duckdns.org +short) ] && echo \'<span style="color:green;">Connected</span>\' || echo \'<span style="color:red;">Disconnected</span>\'')
+#        output.vpn_data = subprocess.getoutput('windscribe account | grep "Data Usage" | cut -c13-') ## Very slow!
         output.drive_used = subprocess.getoutput('df -h | head -n 2 | tail -n 1 | awk \'{print $5}\'')
         output.drive_free = subprocess.getoutput('df -h | head -n 2 | tail -n 1 | awk \'{print $4}\'')
         output.uptime = subprocess.getoutput('uptime -p | cut -c4-')
