@@ -8,11 +8,13 @@
 * {
   box-sizing: border-box;
 }
-.button {
+.common-styles {
   font-weight: 400;
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  font-size: 70%;
+}
+.button {
   box-sizing: border-box;
-
   margin-top: 3px;
   padding: 6px 12px;
   text-align: center;
@@ -30,9 +32,6 @@
   box-shadow: 0 5px 5px rgba(0, 0, 0, 0.75);
 }
 table {
-  font-weight: 400;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  font-size: 70%;
   width: 100%;
 }
 td, th {
@@ -58,7 +57,6 @@ tr:nth-child(odd) {
   margin: auto;
   width: 730px;
 }
-
 a:link {
   text-decoration: none;
   color: black;
@@ -81,15 +79,15 @@ a:active {
 <div style="text-align: center;">
 <!--- Top menu --->
 &nbsp; <b>Transmission:</b>
-<a class="button" href="http://piz2:9091/transmission/web/" rel="nofollow" target="_blank">WebUI</a>
-<a class="button" href="javascript:void(0);" onclick="Start();">Start</a>
-<a class="button" href="javascript:void(0);" onclick="Stop();">Stop</a>
+<a class="button common-styles" href="http://piz2:9091/transmission/web/" rel="nofollow" target="_blank">WebUI</a>
+<a class="button common-styles" href="javascript:void(0);" onclick="Start();">Start</a>
+<a class="button common-styles" href="javascript:void(0);" onclick="Stop();">Stop</a>
 &nbsp; <b>VPN:</b>
-<a class="button" href="javascript:void(0);" onclick="Connect();">Connect</a>
-<a class="button" href="javascript:void(0);" onclick="Disconnect();">Disconnect</a>
+<a class="button common-styles" href="javascript:void(0);" onclick="Connect();">Connect</a>
+<a class="button common-styles" href="javascript:void(0);" onclick="Disconnect();">Disconnect</a>
 &nbsp; <b>System:</b>
-<a class="button" href="/reboot" rel="nofollow">Reboot</a>
-<a class="button" href="/halt" rel="nofollow">Halt</a>
+<a class="button common-styles" href="/reboot" rel="nofollow">Reboot</a>
+<a class="button common-styles" href="/halt" rel="nofollow">Halt</a>
 </div>
 
 <div class="row" style="background-color:#111;">
@@ -97,7 +95,7 @@ a:active {
 <div class="column left">
 <!--- Left table --->
 <center><b>Metrics</b></center>
-<table id="metrics">
+<table class="common-styles" id="metrics">
   <tr><td>Loading...<td></tr>
 </table>
 </div>
@@ -105,7 +103,7 @@ a:active {
 <div class="column right">
 <!--- Right table --->
 <center><b>Files</b></center>
-<table id="files">
+<table class="common-styles" id="files">
   <tr><td>Loading...<td></tr>
 </table>
 </div>
@@ -136,32 +134,24 @@ async function Files(){
   }
 }
 
-async function Start(){
-  const request = await fetch("/start");
-  if (await request) {
-    Metrics();
-  }
-}  
- 
-async function Stop(){
-  const request = await fetch("/stop");
-  if (await request) {
-    Metrics();
-  }
+async function Start() {
+  await fetch("/start");
+  Metrics();
 }
 
-async function Connect(){
-  const request = await fetch("/connect");
-  if (await request) {
-    Metrics();
-  }
+async function Stop() {
+  await fetch("/stop");
+  Metrics();
 }
 
-async function Disconnect(){
-  const request = await fetch("/disconnect");
-  if (await request) {
-    Metrics();
-  }
+async function Connect() {
+  await fetch("/connect");
+  Metrics();
+}
+
+async function Disconnect() {
+  await fetch("/disconnect");
+  Metrics();
 }
 
 window.onload = function () { 
