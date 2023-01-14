@@ -14,6 +14,17 @@ The second purpose is to create a WebUI to manage a RaspberryPi dedicated to dow
 
 ![listener_screenshot](https://github.com/davift/API/blob/main/screenshot.png)
 
+## Disclaimer
+
+This code is a laboratory (PoC), not intended to be exposed directly to the public Internet or be used in production environment.
+
+Read, customize, learn, and use it at your own risk because it has security risks:
+
+- The code uses the modules to execute shell commands,
+- It has multiple unauthenticated endpoints,
+- By design, it binds on all interfaces,
+- And there is no inputs validation/sanitization.
+
 ## Installation
 
 It is recommended to clone this repo then rename the directory to `/App`:
