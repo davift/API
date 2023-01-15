@@ -37,7 +37,7 @@ class CustomHandler(BaseHTTPRequestHandler):
             dynamicDns = os.environ.get('DYNAMIC_DNS')
             output = {
                 "public IP": subprocess.run('dig +short myip.opendns.com @resolver1.opendns.com', shell=True, capture_output=True, text=True).stdout,
-                "vpn": subprocess.run('[ $(curl l2.io/ip) != $(dig ' + str(dynamicDns) + ' +short) ] && echo \'<span style="color:green;">Connected</span>\' || echo \'<span style="color:red;">Disconnected</span>\'', shell=True, capture_output=True, text=True).stdout,
+                "vpn": subprocess.run('[ $(curl -s l2.io/ip) != $(dig ' + str(dynamicDns) + ' +short) ] && echo \'<span style="color:green;">Connected</span>\' || echo \'<span style="color:red;">Disconnected</span>\'', shell=True, capture_output=True, text=True).stdout,
                 "transmission": subprocess.run('if [ "$(systemctl status transmission-daemon.service | head -n 3 | tail -n 1 | awk \'{print $2,$3}\')" != "active (running)" ]; then echo \'<span style="color:red;">Not Running</span>\'; else echo \'<span style="color:green;">Running</span>\'; fi', shell=True, capture_output=True, text=True).stdout,
                 "uptime": subprocess.run('uptime -p | cut -c4-', shell=True, capture_output=True, text=True).stdout,
                 "free space": subprocess.run('df -h | grep \'\/$\' | awk \'{print $4}\'', shell=True, capture_output=True, text=True).stdout,
