@@ -20,7 +20,7 @@ class CustomHandler(BaseHTTPRequestHandler):
 
         if '/files' in self.path:
             files = {}
-            path = './'
+            path = '/Torrent'
             try:
                 for dirpath, dirnames, filenames in os.walk(path):
                     for file in filenames:
@@ -36,7 +36,7 @@ class CustomHandler(BaseHTTPRequestHandler):
         elif '/status' in self.path:
             output = {
                 "public IP": subprocess.run('curl -s http://ip.me', shell=True, capture_output=True, text=True).stdout,
-                "vpn": subprocess.run('[ $(curl -s http://ip.me) != $(dig dfth.duckdns.org +short) ] && echo \'<span style="color:green;">Connected</span>\' || echo \'<span style="color:red;">Disconnected</span>\'', shell=True, capture_output=True, text=True).stdout,
+                "vpn": subprocess.run('[ $(curl -s http://ip.me) != $(dig your-domain.duckdns.org +short) ] && echo \'<span style="color:green;">Connected</span>\' || echo \'<span style="color:red;">Disconnected</span>\'', shell=True, capture_output=True, text=True).stdout,
                 "transmission": subprocess.run('if [ "$(systemctl status transmission-daemon.service | head -n 3 | tail -n 1 | awk \'{print $2,$3}\')" != "active (running)" ]; then echo \'<span style="color:red;">Not Running</span>\'; else echo \'<span style="color:green;">Running</span>\'; fi', shell=True, capture_output=True, text=True).stdout,
                 "uptime": subprocess.run('uptime -p | cut -c4-', shell=True, capture_output=True, text=True).stdout,
                 "free space": subprocess.run('df -h | grep \'\/$\' | awk \'{print $4}\'', shell=True, capture_output=True, text=True).stdout,
