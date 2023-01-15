@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
-import subprocess, json, glob, os, time
-from http.server import SimpleHTTPRequestHandler
-from socketserver import TCPServer
-from urllib.parse import unquote
+import subprocess, os, json
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from socketserver import ThreadingMixIn
+from urllib.parse import parse_qs
 
-def http_server(host_port,content_type="application/json"):
-  class CustomHandler(SimpleHTTPRequestHandler):
-    def do_GET(self) -> None:
+class CustomHandler(BaseHTTPRequestHandler):
 
-      def send_200(content_type="application/json"):
+    def _send_response(self, content_type='application/json'):
         self.send_response(200)
         self.send_header("Content-type", content_type)
         self.send_header("Cache-Control", 'no-cache, no-store, must-revalidate')
@@ -16,110 +14,100 @@ def http_server(host_port,content_type="application/json"):
         self.send_header("Expires", '0')
         self.end_headers()
 
-      class Output:
-        pass
+    def do_GET(self):
 
-      self.path = unquote(self.path)
-      app = '/App'
-      path = '/Torrent'
+        print(self.path)
 
-      if self.path == '/files':
-        list = {}
-        path=r"/Torrent"
-        files = glob.glob(path + r'/**', recursive=True)
-        self.send_response(200)
-        self.send_header("Content-type", content_type)
-        self.end_headers()
-        for file in files:
-          if os.path.isfile(file):
-            list[file.replace(path + '/', '', 1)] = os.stat(file).st_size
+        if '/files' in self.path:
+            files = {}
+            path = './'
+            try:
+                for dirpath, dirnames, filenames in os.walk(path):
+                    for file in filenames:
+                        file_path = os.path.join(dirpath, file)
+                        files[file_path.replace(path + '/', '')] = os.stat(file_path).st_size
+                self._send_response()
+                self.wfile.write(json.dumps(files, indent=4).encode())
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(str(e).encode())
 
-        self.wfile.write(bytes(json.dumps(list, indent=4), 'utf-8'))
-        return
+        elif '/status' in self.path:
+            output = {
+                "public IP": subprocess.run('curl -s http://ip.me', shell=True, capture_output=True, text=True).stdout,
+                "vpn": subprocess.run('[ $(curl -s http://ip.me) != $(dig dfth.duckdns.org +short) ] && echo \'<span style="color:green;">Connected</span>\' || echo \'<span style="color:red;">Disconnected</span>\'', shell=True, capture_output=True, text=True).stdout,
+                "transmission": subprocess.run('if [ "$(systemctl status transmission-daemon.service | head -n 3 | tail -n 1 | awk \'{print $2,$3}\')" != "active (running)" ]; then echo \'<span style="color:red;">Not Running</span>\'; else echo \'<span style="color:green;">Running</span>\'; fi', shell=True, capture_output=True, text=True).stdout,
+                "uptime": subprocess.run('uptime -p | cut -c4-', shell=True, capture_output=True, text=True).stdout,
+                "free space": subprocess.run('df -h | grep \'\/$\' | awk \'{print $4}\'', shell=True, capture_output=True, text=True).stdout,
+            }
+            self._send_response()
+            self.wfile.write(json.dumps(output, indent=4).encode())
 
-      elif self.path == '/status':
-        send_200()
-        output = Output()
-
-        runCmd1 = subprocess.getoutput('systemctl status transmission-daemon.service | head -n 3 | tail -n 1 | awk \'{print $2,$3}\'')
-        if runCmd1 != 'active (running)':
-          output.transmission = '<span style="color:red;">Not Running</span>'
-        else:
-          output.transmission = '<span style="color:green;">Running</span>'
-
-        output.vpn_status = subprocess.getoutput('[ $(curl -s http://ip.me) != $(dig dftsue.duckdns.org +short) ] && echo \'<span style="color:green;">Connected</span>\' || echo \'<span style="color:red;">Disconnected</span>\'')
-#        output.vpn_data = subprocess.getoutput('windscribe account | grep "Data Usage" | cut -c13-') ## Very slow!
-        output.drive_used = subprocess.getoutput('df -h | head -n 2 | tail -n 1 | awk \'{print $5}\'')
-        output.drive_free = subprocess.getoutput('df -h | head -n 2 | tail -n 1 | awk \'{print $4}\'')
-        output.uptime = subprocess.getoutput('uptime -p | cut -c4-')
-
-        self.wfile.write(bytes(json.dumps(output.__dict__, indent=4), 'utf-8'))
-        return
-
-      elif self.path == '/halt':
-        send_200('text/plain')
-        self.wfile.write(bytes('Halted', 'utf-8'))
-        subprocess.getoutput('sudo shutdown now')
-        return
-
-      elif self.path == '/reboot':
-        send_200('text/plain')
-        self.wfile.write(bytes('Rebooting', 'utf-8'))
-        subprocess.getoutput('sudo reboot')
-        return
-
-      elif self.path == '/connect':
-        subprocess.getoutput('sudo windscribe connect')
-        send_200()
-        self.wfile.write(bytes('Connected', 'utf-8'))
-        return
-
-      elif self.path == '/disconnect':
-        subprocess.getoutput('sudo windscribe disconnect')
-        send_200()
-        self.wfile.write(bytes('Disconnected', 'utf-8'))
-        return
-
-      elif self.path == '/stop':
-        subprocess.getoutput('sudo /bin/systemctl stop transmission-daemon.service')
-        send_200()
-        self.wfile.write(bytes('Paused', 'utf-8'))
-        return
-
-      elif self.path == '/start':
-        subprocess.getoutput('sudo /bin/systemctl start transmission-daemon.service')
-        send_200()
-        self.wfile.write(bytes('Started', 'utf-8'))
-        return
-
-      elif self.path == '/' or self.path == '/icon.jpg':
-        if self.path == '/':
-          send_200('text/html')
-          url = '/index.html'
-        elif self.path == '/icon.jpg':
-          send_200('image/jpeg')
-          url = self.path
-        else:
+        elif '/halt' in self.path:
+          self._send_response('text/plain')
+          self.wfile.write(bytes('Halted', 'utf-8'))
+          subprocess.getoutput('sudo shutdown now')
           return
-        file = open(app + url, "rb")
-        self.wfile.write(bytes(file.read()))
-        file.close()
-        return
 
-      else:
-        self.send_response(404)
-        self.end_headers()
-        return
+        elif '/reboot' in self.path:
+          self._send_response('text/plain')
+          self.wfile.write(bytes('Rebooting', 'utf-8'))
+          subprocess.getoutput('sudo reboot')
+          return
+
+        elif '/connect' in self.path:
+          subprocess.getoutput('sudo windscribe connect')
+          self._send_response()
+          self.wfile.write(bytes('Connected', 'utf-8'))
+          return
+
+        elif '/disconnect' in self.path:
+          subprocess.getoutput('sudo windscribe disconnect')
+          self._send_response()
+          self.wfile.write(bytes('Disconnected', 'utf-8'))
+          return
+
+        elif '/stop' in self.path:
+          subprocess.getoutput('sudo /bin/systemctl stop transmission-daemon.service')
+          self._send_response()
+          self.wfile.write(bytes('Paused', 'utf-8'))
+          return
+
+        elif '/start' in self.path:
+          subprocess.getoutput('sudo /bin/systemctl start transmission-daemon.service')
+          self._send_response()
+          self.wfile.write(bytes('Started', 'utf-8'))
+          return
+        elif '/' in self.path or 'index.html' in self.path or '/icon.jpg' in self.path:
+          if '/' in self.path or 'index.html' in self.path:
+            self._send_response('text/html')
+            url = 'index.html'
+          elif self.path == '/icon.jpg':
+            self._send_response('image/jpeg')
+            url = 'icon.jpg'
+          else:
+            return
+          file = open(url, "rb")
+          self.wfile.write(bytes(file.read()))
+          file.close()
+          return
+
+        else:
+            self.send_response(404)
+            self.end_headers()
+            return
 
     def log_message(self, format, *args):
       pass
-  class _TCPServer(TCPServer):
-    allow_reuse_address = True
-  httpd = _TCPServer(host_port, CustomHandler)
-  httpd.serve_forever()
+
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    """Handle requests in a separate thread."""
 
 try:
-  http_server(('0.0.0.0',80))
+    server = ThreadedHTTPServer(('0.0.0.0', 80), CustomHandler)
+    print('Starting server, use <Ctrl-C> to stop')
+    server.serve_forever()
 except KeyboardInterrupt:
-  print(' Interrupted')
-  exit()
+    print(' Interrupted')
+    server.socket.close()
