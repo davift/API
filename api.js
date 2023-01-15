@@ -1,91 +1,116 @@
 var http = require('http');
 var url = require('url');
-const fs = require('fs')
+const fs = require('fs');
 const { execSync } = require("child_process");
 
-const app = '/App';
 const path = '/Torrent';
 
-async function processRequest(request, response) {
+const server = http.createServer((req, res) => {
   "use strict";
-
-  var pathname = url.parse(request.url).pathname;
-//  console.log('Requested: ' + pathname);
+  const pathname = url.parse(req.url).pathname;
+  console.log('Requested: ' + pathname);
 
   if (pathname == '/'){
-    fs.readFile(app + '/index.html', function(error, data) {
-      response.writeHead(200, { 'Content-Type': 'text/html' });
-      response.write(data);
-      response.end();
-    })
+    res.setHeader('Content-Type', 'text/html');
+    fs.createReadStream('index.html').pipe(res);
   } else if (pathname == '/icon.jpg'){
-    fs.readFile('icon.jpg', function(error, data) {
-      response.writeHead(200, { 'Content-Type': 'image/jpeg' });
-      response.write(data);
-      response.end();
-    })
+    res.setHeader('Content-Type', 'image/jpeg');
+    fs.createReadStream('icon.jpg').pipe(res);
   } else if (pathname == '/status'){
-    response.writeHead(200, { 'Content-Type': 'text/html', 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache', 'Expires': '0' });
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+
     let status = {};
-    let stdout = execSync('systemctl status transmission-daemon.service | head -n 3 | tail -n 1 | awk \'{print $2,$3}\'', {encoding: 'utf8'});
-    if (stdout == 'active (running)\n'){
-      status['transmission'] = '<span style="color:green;">Running</span>';
-    } else {
-      status['transmission'] = '<span style="color:red;">Not Running</span>';
+
+    // Note: I decided to use execSync to simplify the code.
+    // For better performance in production the exec is best
+    // because it is asynchromnous by default.
+    try {
+      let out = execSync('dig +short myip.opendns.com @resolver1.opendns.com', {encoding: 'utf8'}).toString();
+      status['public IP'] = out.replace(/\n*$/, "");
+    } catch(err) {
+      console.error(err);
     }
-    status['vpn_status'] = execSync('if [ $(curl -s http://ip.me) != $(dig example.duckdns.org +short) ]; then echo \'<span style="color:green;">Connected</span>\'; else echo \'<span style="color:red;">Disconnected</span>\'; fi', {encoding: 'utf8'}).replace(/\n*$/, "");
-    status['vpn_data'] = execSync('windscribe account | grep "Data Usage" | cut -c13-', {encoding: 'utf8'}).replace(/\n*$/, "");
-    status['drive_used'] = execSync('df -h | head -n 2 | tail -n 1 | awk \'{print $5}\'', {encoding: 'utf8'}).replace(/\n*$/, "");
-    status['drive_free'] = execSync('df -h | head -n 2 | tail -n 1 | awk \'{print $4}\'', {encoding: 'utf8'}).replace(/\n*$/, "");
-    status['uptime'] = execSync('uptime -p', {encoding: 'utf8'}).replace(/\n*$/, "");
-    response.write(JSON.stringify(status, null, 2));
-    response.end();
+    try {
+      let out = execSync('[ $(curl -s l2.io/ip) != $(dig ' + String(process.env.DYNAMIC_DNS) + ' +short) ] && echo \'<span style="color:green;">Connected</span>\' || echo \'<span style="color:red;">Disconnected</span>\'', {encoding: 'utf8'}).toString();
+      status['vpn'] = out.replace(/\n*$/, "");
+    } catch(err) {
+      console.error(err);
+    }
+    try {
+      let out = execSync('if [ "$(systemctl status transmission-daemon.service | head -n 3 | tail -n 1 | awk \'{print $2,$3}\')" != "active (running)" ]; then echo \'<span style="color:red;">Not Running</span>\'; else echo \'<span style="color:green;">Running</span>\'; fi', {encoding: 'utf8'}).toString();
+      status['transmission'] = out.replace(/\n*$/, "");
+    } catch(err) {
+      console.error(err);
+    }
+    try {
+      let out = execSync('uptime -p | cut -c4-', {encoding: 'utf8'}).toString();
+      status['uptime'] = out.replace(/\n*$/, "");
+    } catch(err) {
+      console.error(err);
+    }
+    try {
+      let out = execSync('df -h | grep \'\/$\' | awk \'{print $4}\'', {encoding: 'utf8'}).toString();
+      status['free space'] = out.replace(/\n*$/, "");
+    } catch(err) {
+      console.error(err);
+    }
+    
+    res.write(JSON.stringify(status, null, 2));
+    res.end();
   } else if (pathname == '/files'){
     let files = {};
-    response.writeHead(200, { 'Content-Type': 'text/html' });
-    let stdout = execSync(`find -L ${path} -type f | sed 's_${path}/__g'`, {encoding: 'utf8'});
-    let list = stdout.split("\n");
+    res.setHeader('Content-Type', 'application/json');
+    let stdout;
+    try {
+      stdout = execSync(`find -L ${path} -type f | sed 's_${path}/__g'`);
+    } catch (err) {
+      throw err;
+    }
+    let list = stdout.toString().split("\n");
     list.forEach(file => {
       if (file != ''){
         files[file] = fs.statSync(path + '/' + file).size;
       }
     });
-    response.write(JSON.stringify(files, null, 2));
-    response.end();
+    res.write(JSON.stringify(files, null, 2));
+    res.end();
   } else if (pathname == '/halt'){
-    response.writeHead(200, { 'Content-Type': 'text/html' });
-    response.write('Halted');
-    response.end();
+    res.setHeader('Content-Type', 'text/html');
+    res.write('Halted');
+    res.end();
     execSync('sudo shutdown now');
   } else if (pathname == '/reboot'){
-    response.writeHead(200, { 'Content-Type': 'text/html' });
-    response.write('Rebooting');
-    response.end();
+    res.setHeader('Content-Type', 'text/html');
+    res.write('Rebooting');
+    res.end();
     execSync('sudo reboot');
   } else if (pathname == '/connect'){
-    response.writeHead(200, { 'Content-Type': 'text/html' });
+    res.setHeader('Content-Type', 'text/html');
+    res.write('Connected');
+    res.end();
     execSync('sudo windscribe connect');
-    response.write('Connected');
-    response.end();
   } else if (pathname == '/disconnect'){
-    response.writeHead(200, { 'Content-Type': 'text/html' });
+    res.setHeader('Content-Type', 'text/html');
+    res.write('Disconnected');
+    res.end();
     execSync('sudo windscribe disconnect');
-    response.write('Disconnected');
-    response.end();
   } else if (pathname == '/stop'){
-    response.writeHead(200, { 'Content-Type': 'text/html' });
+    res.setHeader('Content-Type', 'text/html');
+    res.write('Stopped');
+    res.end();
     execSync('sudo /bin/systemctl stop transmission-daemon.service');
-    response.write('Stopped');
-    response.end();
   } else if (pathname == '/start'){
-    response.writeHead(200, { 'Content-Type': 'text/html' });
+    res.setHeader('Content-Type', 'text/html');
+    res.write('Started');
+    res.end();
     execSync('sudo /bin/systemctl start transmission-daemon.service');
-    response.write('Started');
-    response.end();
   } else {
-    response.writeHead(404);
-    response.end();
+    res.writeHead(404);
+    res.end();
   }
-}
+});
 
-http.createServer(processRequest).listen(80);
+server.listen(80);
