@@ -56,7 +56,7 @@ func status(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	cmd1, _ := exec.Command("bash", "-c", "dig +short myip.opendns.com @resolver1.opendns.com").Output()
-	cmd2, _ := exec.Command("bash", "-c", "[ $(curl l2.io/ip) != $(dig dft20s.duckdns.org +short) ] && echo '<span style=\"color:green;\">Connected</span>' || echo '<span style=\"color:red;\">Disconnected</span>'").Output()
+	cmd2, _ := exec.Command("bash", "-c", "[ $(curl -s l2.io/ip) != $(dig "+os.Getenv("DYNAMIC_DNS")+" +short) ] && echo '<span style=\"color:green;\">Connected</span>' || echo '<span style=\"color:red;\">Disconnected</span>'").Output()
 	cmd3, _ := exec.Command("bash", "-c", "if [ \"$(systemctl status transmission-daemon.service | head -n 3 | tail -n 1 | awk '{print $2,$3}')\" != \"active (running)\" ]; then echo '<span style=\"color:red;\">Not Running</span>'; else echo '<span style=\"color:green;\">Running</span>'; fi").Output()
 	cmd4, _ := exec.Command("bash", "-c", "uptime -p | cut -c4-").Output()
 	cmd5, _ := exec.Command("bash", "-c", "df -h | grep '/$' | awk '{print $4}'").Output()
@@ -77,7 +77,7 @@ func files(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	files := map[string]int64{}
 
-	err := filepath.Walk("./", func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk("/Torrent", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
