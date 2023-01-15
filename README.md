@@ -50,6 +50,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/App
+Environment="DYNAMIC_DNS=your-domain-here.duckdns.org"
 ExecStart=/usr/bin/python3 /App/api.py
 Restart=on-abort
 
