@@ -1,16 +1,17 @@
 # API
 
-Version 2 \
-2022-02-07
+Version 3 \
+2023-01-15
 
 ## Introduction / Purpose
 
-The first purpose is to create a template for future developments of APIs using multiple languages and as a source for quick reference for syntax, workaround, and best practices, etc.
-The second purpose is to create a WebUI to manage a RaspberryPi dedicated to downloading Torrents with the following features:
-- List the system metrics, such as up-time, used storage, VPN status and data usage, and more,
-- Start and stop the VPN connection and the Transmission (Torrent application) daemon,
-- Reboot and halt the system,
-- List, download, and delete files from the torrent directory.
+The purpose of this app is to provide a template for developing APIs using multiple languages. It serves as a resource for syntax, workarounds, and best practices.
+
+Specifically, the app is a web-based tool for managing a Raspberry Pi dedicated to downloading Torrents. It includes features such as:
+- displaying system metrics (e.g. uptime, used storage, VPN status),
+- starting and stopping the VPN connection and Transmission (Torrent application) daemon,
+- rebooting and shutting down the system,
+- and listing, downloading, and deleting files being downloaded or completed.
 
 ![listener_screenshot](https://github.com/davift/API/blob/main/screenshot.png)
 
@@ -34,7 +35,7 @@ git clone git@github.com:davift/API.git
 sudo mv API /App
 ```
 
-This application is designed to run as a service in the syste.
+This application is designed to run as a system service.
 
 ```
 sudo nano /etc/systemd/system/simpleapi.service
@@ -72,7 +73,7 @@ And replace the following file on the service configuration file:
 ExecStart=/usr/bin/node /App/api.js
 ```
 
-Same for **GOlang**, install the compiler:
+For **GOlang**, install the compiler:
 
 ```
 sudo apt install golang
@@ -85,14 +86,22 @@ And replace the following file on the service configuration file:
 ExecStart=/usr/bin/go run /App/api.go
 ```
 
-It assumes the /Torrent directory is where the Transmission is configured to place the downloaded files but these both locations can be changed in `/App/api.py`:
+For Ruby, install:
 
 ```
- Line #32                         app = '/App'
- Line #33                         path = '/Torrent'
+sudo apt  install ruby -y
+ruby -v
 ```
 
-## Execution
+And replace the following file on the service configuration file:
+
+```
+ExecStart=/usr/bin/ruby /App/api.rb
+```
+
+It assumes the /Torrent directory is where the Transmission is configured to place the downloaded files. It can be easily changed in the code.
+
+## Starting
 
 ```
 sudo systemctl daemon-reload
@@ -100,7 +109,7 @@ sudo systemctl start simpleapi.service
 sudo systemctl enable simpleapi.service
 ```
 
-## Additionals
+## Moreover
 
 Other commands such as restart or stop can be commanded as follows:
 
