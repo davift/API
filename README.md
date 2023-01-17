@@ -3,7 +3,7 @@
 Version 3 \
 2023-01-15
 
-## Introduction / Purpose
+## Introduction
 
 The purpose of this app is to provide a template for developing APIs using multiple languages. It serves as a resource for syntax, workarounds, and best practices.
 
@@ -123,3 +123,37 @@ Python scripts can eventually be compiled:
 ```
 python -m py_compile api.py
 ```
+
+## Handling Parallel Connections
+
+- Golang is meant for multi-thread processing and is capable of hadle as much parallel connections as computing resources are available in the server. This is the best oiption for production application.
+- The Python and Ruby versions in this repo work similarly to the Golang, limited only by the server's resources.
+- NoseJS in another hand, by default is capable of hadling 5-6 parallel connections. It requires some tweaks to spin up multiple workers that would handle a single connection per node using the modules **"cluster"** or **"pm2"**. Keep in mind, the NodeJS version implementation in this repo uses execSync (synchronous), not exec (asynchronous).
+
+### NodeJS Cluster - Example
+
+```
+var cluster = require('cluster');
+var http = require('http');
+
+if (cluster.isMaster) {
+  for (var i = 0; i < 100; i++) {
+    cluster.fork();
+  }
+} else {
+  var server = http.createServer(function (req, res) {
+    res.writeHead(200);
+    res.end('Hello World\n');
+  });
+
+  server.listen(80);
+}
+```
+
+### NodeJS Process Manager 2 - Example
+
+```
+pm2 start app.js -i 100
+```
+
+**Note:** manually running this application does not attach its process to the session, and it works as an orchestrator engine that also provides features such as automatic application restart on crash, automatic application scaling, and monitoring of application performance.
